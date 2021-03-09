@@ -1,0 +1,129 @@
+---
+title: "patchwork_cheat_sheet"
+author: "Hanjuan Zhang"
+date: "3/9/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Package used
+
+```{r,warning=FALSE,message=FALSE}
+library(ggplot2)
+library(patchwork)
+library(magick)
+library(png)
+```
+
+## Install and Load the Packages
+
+```{r}
+#install.packages('patchwork')
+
+# grab the development version from github using devtools
+#install.packages("devtools")
+#devtools::install_github("thomasp85/patchwork") 
+```
+
+## Plot Assembly
+```{r}
+p1 <- ggplot(mtcars) + 
+  geom_point(aes(mpg, disp)) + 
+  ggtitle('Plot 1')
+
+p2 <- ggplot(mtcars) + 
+  geom_boxplot(aes(gear, disp, group = gear)) + 
+  ggtitle('Plot 2')
+
+p3 <- ggplot(mtcars) + 
+  geom_point(aes(hp, wt, colour = mpg)) + 
+  ggtitle('Plot 3')
+
+p4 <- ggplot(mtcars) + 
+  geom_bar(aes(gear)) + 
+  facet_wrap(~cyl) + 
+  ggtitle('Plot 4')
+```
+
+### + 
+Using + to add plots together
+```{r}
+p1 + p2
+```
+
+### /
+/ will stack the plots together.
+```{r}
+p1/p2
+```
+
+### |
+| place the plots beside each other.
+```{r}
+p3 | (p1 / p2)
+```
+
+### plot_spacer()
+create an empty area in between plots
+```{r}
+p1 + plot_spacer() + p2 
+```
+
+
+### Adding plots to the patchwork
+
+```{r}
+p1 + grid::textGrob('Some really important text')
+wrap_elements(grid::textGrob('Text on left side')) + p1
+p1 + gridExtra::tableGrob(mtcars[1:10, c('mpg', 'disp')])
+```
+
+## Controlling Layout
+
+### plot_layout()
+controll the order of the layout.
+
+```{r}
+p1 + p2 + p3 + p4 + 
+  plot_layout(ncol = 3)
+p1 + p2 + p3 + p4 + 
+  plot_layout(widths = c(2, 1))
+p1 + p2 + p3 + p4 + 
+  plot_layout(widths = c(2, 1), heights = unit(c(5, 1), c('cm', 'null')))
+
+layout <- "
+##BBBB
+AACCDD
+##CCDD
+"
+p1 + p2 + p3 + p4 + 
+  plot_layout(design = layout)
+```
+
+### inset_element() 
+```{r}
+p1 + inset_element(p2, left = 0, bottom = 0.6, right = 0.4, top = 1, align_to = 'full')
+
+p1 + inset_element(
+  p2, 
+  left = 0.5, 
+  bottom = 0.5, 
+  right = unit(1, 'npc') - unit(1, 'cm'), 
+  top = unit(1, 'npc') - unit(1, 'cm')
+)
+```
+
+
+## Annotating
+title, subtitle, caption
+tag_levels
+tag_prefix, tag_suffix
+theme
+
+```{r}
+(p1 | (p2 / p3)) + 
+  plot_annotation(title = 'The surprising story about mtcars')
+```
